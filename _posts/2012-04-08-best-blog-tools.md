@@ -2,8 +2,8 @@
 layout: post
 title: "最好的写博客方式诞生"
 description: "github,markdwon,jekyll,git,blog"
-category: "工具癖"
-tags: [github, markdown, jekyll]
+category: 工具癖
+tags: [github, markdown, jekyll,git]
 ---
 {% include JB/setup %}
 

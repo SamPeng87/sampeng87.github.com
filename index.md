@@ -15,6 +15,7 @@ header: 无底洞
 
 于是有了这个博客空间，搭建在[github][2]上的博客.这应该会是我最后集中的博客空间了。正在迁移所有其他博客空间的日志过来。
 
+[如何在github上写blog][12]
 
 ## 开源项目
 
@@ -29,7 +30,7 @@ header: 无底洞
 以后要多关注这方面的贡献了。希望对其他的朋友有所帮助
 
 [**Sublime Last Edit**][3]
-    
+     
     一个sublime的插件，喜欢很多编辑器的回到上一步编辑点的功能，于是自己开发了一个。欢迎使用
     https://github.com/SamPeng87/sublime-last-edit
 
@@ -72,3 +73,4 @@ header: 无底洞
 [9]: http://www.joboto.com/
 [10]:http://weibo.com/thinksns
 [11]:http://weibo.com/askawang
+[12]:../../../../2012/04/08/best-blog-tools
