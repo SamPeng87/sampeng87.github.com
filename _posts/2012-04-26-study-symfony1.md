@@ -7,8 +7,6 @@ tags: [Symfony]
 ---
 {% include JB/setup %}
 
-
-
 ##Request是针对http协议请求头的一个对象封装
 
 分别具有一下属性

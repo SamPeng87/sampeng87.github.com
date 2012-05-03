@@ -2,7 +2,7 @@
 layout: post
 title: "学习过程中一些心得"
 description: ""
-category:思想 
+category: 思想 
 tags: []
 ---
 {% include JB/setup %}
