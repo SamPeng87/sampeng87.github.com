@@ -9,9 +9,10 @@ tags: [Symfony]
 
 ##映射到Action
 
-blog_show:
-     pattern: /blog/{slug}
-     defaults: { _controller:SamBlogBundle:Blog:show}
+
+    blog_show:
+        pattern: /blog/{slug}
+        defaults: { _controller:SamBlogBundle:Blog:show}
 
 就是把任何/blog/xxx的xxx作为参数映射到SamBlogBundle的BlogController中ShowAction中。
 
@@ -19,8 +20,8 @@ blog_show:
 
 app/config/config.yml
 
-framework:
-     router: {resource:"%kernel.root_dir%/config/routing.yml"}
+    framework:
+        router: {resource:"%kernel.root_dir%/config/routing.yml"}
 
 
 ##自定义路由规则
@@ -61,9 +62,9 @@ framework:
 
 **在router中引入外部的router**
 
-sampeng_hello:
-     resource: "@Bundle/Resources/config/routing.yml"
-     prefix: /admin
+    sampeng_hello:
+        resource: "@Bundle/Resources/config/routing.yml"
+        prefix: /admin
 
 **调试路由**
 php app/console router:debug [router_name]
@@ -72,12 +73,14 @@ php app/console router:debug [router_name]
 
 $url = $this->get("router")->generate('blog_show',array("page"=>1));
 
-**在模板中创建链接""
+**在模板中创建链接**
 
 相对的url（如/blog/1）
-     {{ path('blog_show',{ 'page': 1 }) }}
+
+\{\{ path('blog_show',{ 'page': 1 }) \}\}
 
 
 完整的url(如http://www.example.com/blog/1)
-     {{ url('blog_show',{ 'page': 1 }) }} 
+
+\{\{ url('blog_show',{ 'page': 1 }) \}\} 
 
