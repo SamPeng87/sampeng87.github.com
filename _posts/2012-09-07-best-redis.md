@@ -3,6 +3,7 @@ layout: post
 title: "Redis源码分析总结报告"
 description: ""
 category: 深入研究
+
 tags: [redis, c]
 ---
 {% include JB/setup %}
@@ -16,109 +17,7 @@ tags: [redis, c]
 
 ### redis的malloc
 
-redis封装了一个跨平台的zmalloc族。用来对应malloc,calloc,free,realloc。
-
-在zmalloc.h中定义了如何使用基础的内存管理组件。
-
-
-	#if defined(USE_TCMALLOC)
-	#define ZMALLOC_LIB ("tcmalloc-" __xstr(TC_VERSION_MAJOR) "." __xstr(TC_VERSION_MINOR))
-	#include <google/tcmalloc.h>
-	#if (TC_VERSION_MAJOR == 1 && TC_VERSION_MINOR >= 6) || (TC_VERSION_MAJOR > 1)
-	#define HAVE_MALLOC_SIZE 1
-	#define zmalloc_size(p) tc_malloc_size(p)
-	#else
-	#error "Newer version of tcmalloc required"
-	#endif
-	
-	#elif defined(USE_JEMALLOC)
-	#define ZMALLOC_LIB ("jemalloc-" __xstr(JEMALLOC_VERSION_MAJOR) "." __xstr(JEMALLOC_VERSION_MINOR) "." __xstr(JEMALLOC_VERSION_BUGFIX))
-	#include <jemalloc/jemalloc.h>
-	#if (JEMALLOC_VERSION_MAJOR == 2 && JEMALLOC_VERSION_MINOR >= 1) || (JEMALLOC_VERSION_MAJOR > 2)
-	#define HAVE_MALLOC_SIZE 1
-	#define zmalloc_size(p) je_malloc_usable_size(p)
-	#else
-	#error "Newer version of jemalloc required"
-	#endif
-	
-	#elif defined(__APPLE__)
-	#include <malloc/malloc.h>
-	#define HAVE_MALLOC_SIZE 1
-	#define zmalloc_size(p) malloc_size(p)
-	#endif
-	
-	#ifndef ZMALLOC_LIB
-	#define ZMALLOC_LIB "libc"
-	#endif
-
-然后在 zmalloc中对内存管理的方法进行统一封装
-
-	/* Explicitly override malloc/free etc when using tcmalloc. */
-	#if defined(USE_TCMALLOC)
-	#define malloc(size) tc_malloc(size)
-	#define calloc(count,size) tc_calloc(count,size)
-	#define realloc(ptr,size) tc_realloc(ptr,size)
-	#define free(ptr) tc_free(ptr)
-	#elif defined(USE_JEMALLOC)
-	#define malloc(size) je_malloc(size)
-	#define calloc(count,size) je_calloc(count,size)
-	#define realloc(ptr,size) je_realloc(ptr,size)
-	#define free(ptr) je_free(ptr)
-	#endif
-
-也就是说，redis可以使用tc_malloc或者je_malloc或者原生的libc
-
-
-只需要在redis编译时：
-
-	
-~~make USE_TCMALLOC=yes  or make USE_JEMALLOC~~
-
-原先我以为是根据make的参数USE_TCMALLOC or USE_JEMALLOC来控制，并且是互斥的。
-
-实际上makefile里面还有这么一段
-
-
-	ifeq ($(uname_S),Linux)
-	  ifneq ($(FORCE_LIBC_MALLOC),yes)
-	    USE_JEMALLOC=yes
-	  endif
-	endif
-	
-	...
-	...
-	//然后发现USE_JEMALLOC是比USE_TCMALLOC优先的
-	ifeq ($(USE_TCMALLOC),yes)
-	  ALLOC_DEP=
-	  ALLOC_LINK=-ltcmalloc
-	  ALLOC_FLAGS=-DUSE_TCMALLOC
-	endif
-	
-	ifeq ($(USE_TCMALLOC_MINIMAL),yes)
-	  ALLOC_DEP=
-	  ALLOC_LINK=-ltcmalloc_minimal
-	  ALLOC_FLAGS=-DUSE_TCMALLOC
-	endif
-	
-	ifeq ($(USE_JEMALLOC),yes)
-	  ALLOC_DEP=../deps/jemalloc/lib/libjemalloc.a
-	  ALLOC_LINK=$(ALLOC_DEP) -ldl
-	  ALLOC_FLAGS=-DUSE_JEMALLOC -I../deps/jemalloc/include
-	endif
-
-所以make时要明确申明只使用tcmalloc
-
-	make USE_JEMALLOC=no USE_TCMALLOC=yes install
-
-查看是否生效
-    
-	lsof -n | grep tcmalloc
-
-两者都是malloc的替代方案，内存管理性能提升最少1倍（这个说法来至其他大神单独从内存管理角度的性能测试，非redis测试结果）。
-
-最后的结论是在linux下，redis的包已经自带并且默认使用jemalloc了。jemalloc在`redis-2.4.16`已经自带，不需要自己去下和编译。
-
-简单对比了一下性能，这里就不帖表格了。简单的说
+redis的内存管理以及大小估算，详细的分析见[内存分析][1]
 
 内存利用率 tcmalloc > jemalloc > libc (通过redis-cli info mem_fragmentation_ratio 查看得知)
 
@@ -155,11 +54,9 @@ redis封装了一个跨平台的zmalloc族。用来对应malloc,calloc,free,real
 	2，被动，定期的去删除最多10个设置了过期时间的key
 
 
-
-
 # Redis模块分析目录
 
-1. redis的内存模块
+1. [redis的内存分析][1]
 2. redis的定时任务
 2. redis的BIO
 3. redis的VM
@@ -170,3 +67,4 @@ redis封装了一个跨平台的zmalloc族。用来对应malloc,calloc,free,real
 8. redis核心数据结构ziplist
 9. redis的网络封装以及异步IO模型
 
+[1]: http://www.sampeng.org/2012/09/11/redis-mem/
